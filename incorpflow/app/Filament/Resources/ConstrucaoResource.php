@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ConstrucaoResource\Pages;
-use App\Filament\Resources\ConstrucaoResource\RelationManagers;
 use App\Models\Construcao;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ConstrucaoResource extends Resource
 {
@@ -21,6 +18,8 @@ class ConstrucaoResource extends Resource
     protected static ?string $modelLabel = 'Construção';
     protected static ?string $pluralModelLabel = 'Construções';
 
+    protected static ?string $slug = 'construcoes';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -28,21 +27,25 @@ class ConstrucaoResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('nome')
-                    ->required()
+                    ->label("Nome completo")
+	            ->required()
                     ->maxLength(255),
 
 
                 Forms\Components\TextInput::make('endereco')
+		    ->label("Endereço")
                     ->required()
                     ->maxLength(255),
 
 
                 Forms\Components\TextInput::make('cidade')
-                    ->required()
+                    ->label("Cidade")
+	            ->required()
                     ->maxLength(255),
 
 
                 Forms\Components\TextInput::make('estado')
+		    ->label('UF')
                     ->required()
                     ->maxLength(2),
 
@@ -69,12 +72,22 @@ class ConstrucaoResource extends Resource
 
 
                 Forms\Components\TextInput::make('responsavel')
+		    ->label('Responsável')
                     ->required()
                     ->maxLength(255),
 
 
                 Forms\Components\Textarea::make('descricao')
-                    ->columnSpanFull(),
+                    ->label('Explique com detalhes sobre essa construção')
+		    ->columnSpanFull(),
+
+		Forms\Components\TextInput::make('pavimentos')
+		    ->label('Pavimentos')
+		    ->required(),
+
+		Forms\Components\TextInput::make('unidades')
+		    ->label('Unidades')
+		    ->required(),
             ]);
     }
 
@@ -82,20 +95,16 @@ class ConstrucaoResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nome')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('endereco')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('cidade')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('estado')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('tipo')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('responsavel')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('nome')->searchable(),
+                Tables\Columns\TextColumn::make('endereco')->searchable(),
+                Tables\Columns\TextColumn::make('cidade')->searchable(),
+                Tables\Columns\TextColumn::make('estado')->searchable(),
+                Tables\Columns\TextColumn::make('tipo')->searchable(),
+                Tables\Columns\TextColumn::make('status')->searchable(),
+		Tables\Columns\TextColumn::make('pavimentos')->searchable(),
+		Tables\Columns\TextColumn::make('unidades')->searchable(),
+                Tables\Columns\TextColumn::make('responsavel')->searchable(),
+                
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -114,6 +123,10 @@ class ConstrucaoResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('Deletar construção')
+                    ->modalDescription('Tem certeza que deseja deletar esta construção? Esta ação não pode ser desfeita.')
+                    ->modalSubmitActionLabel('Sim, deletar'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -138,3 +151,4 @@ class ConstrucaoResource extends Resource
         ];
     }
 }
+

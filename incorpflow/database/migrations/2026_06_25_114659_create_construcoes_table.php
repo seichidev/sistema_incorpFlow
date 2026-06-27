@@ -18,8 +18,7 @@ return new class extends Migration
             $table->string('cidade');
 	    $table->string('estado', 2);
 	    $table->enum('tipo', ['Residencial', 'Comercial', 'Misto', 'Industrial']);
-	    $table->enum('status', ['Em construção', 'Concluída', 'Planejamento', 'Suspensa']) 
-                  ->default('Planejamento');
+	    $table->enum('status', ['Em construção', 'Concluída', 'Planejamento', 'Suspensa'])->default('Planejamento');
 	    $table->string('responsavel');
 	    $table->text('descricao')->nullable();
 	    $table->timestamps();
