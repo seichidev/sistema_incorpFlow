@@ -68,6 +68,10 @@ class PavimentosRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('quantidade')
                     ->label('Qtd.'),
             ])
+            ->headerActions([
+                Tables\Actions\CreateAction::make()
+                    ->label('Novo Pavimento'),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()

@@ -81,10 +81,6 @@ class ConstrucaoResource extends Resource
                     ->label('Explique com detalhes sobre essa construção')
 		    ->columnSpanFull(),
 
-		Forms\Components\TextInput::make('pavimentos')
-		    ->label('Pavimentos')
-		    ->required(),
-
 		Forms\Components\TextInput::make('unidades')
 		    ->label('Unidades')
 		    ->required(),
