@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pavimento extends Model
@@ -21,5 +22,10 @@ class Pavimento extends Model
     public function construcao(): BelongsTo
     {
         return $this->belongsTo(Construcao::class);
+    }
+
+    public function unidadesAutonomas(): HasMany
+    {
+        return $this->hasMany(UnidadeAutonoma::class);
     }
 }

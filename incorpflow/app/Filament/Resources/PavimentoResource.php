@@ -125,6 +125,13 @@ class PavimentoResource extends Resource
             ]);
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            \App\Filament\Resources\PavimentoResource\RelationManagers\UnidadesAutonomasRelationManager::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [

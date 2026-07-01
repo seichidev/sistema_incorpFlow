@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ConstrucaoResource\RelationManagers;
 
+use App\Filament\Resources\PavimentoResource;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -73,7 +74,8 @@ class PavimentosRelationManager extends RelationManager
                     ->label('Novo Pavimento'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->url(fn ($record) => PavimentoResource::getUrl('edit', ['record' => $record])),
                 Tables\Actions\DeleteAction::make()
                     ->modalHeading('Deletar pavimento')
                     ->modalDescription('Tem certeza que deseja deletar este pavimento?')
