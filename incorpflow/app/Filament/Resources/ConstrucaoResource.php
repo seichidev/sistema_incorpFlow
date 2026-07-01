@@ -101,7 +101,10 @@ class ConstrucaoResource extends Resource
                 Tables\Columns\TextColumn::make('estado')->searchable(),
                 Tables\Columns\TextColumn::make('tipo')->searchable(),
                 Tables\Columns\TextColumn::make('status')->searchable(),
-		Tables\Columns\TextColumn::make('pavimentos')->searchable(),
+                Tables\Columns\TextColumn::make('total_pavimentos')
+                    ->label('Pavimentos')
+                    ->getStateUsing(fn ($record) => $record->pavimentos()->sum('quantidade'))
+                    ->default(0),
 		Tables\Columns\TextColumn::make('unidades')->searchable(),
                 Tables\Columns\TextColumn::make('responsavel')->searchable(),
                 
@@ -138,7 +141,7 @@ class ConstrucaoResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\ConstrucaoResource\RelationManagers\PavimentosRelationManager::class,
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Construcao extends Model
@@ -20,12 +21,16 @@ class Construcao extends Model
 	'status',
 	'responsavel',
 	'descricao',
-	'pavimentos',
 	'unidades',
     ];
+
+    public function pavimentos(): HasMany
+    {
+        return $this->hasMany(Pavimento::class);
+    }
 
     public function getCidadeEstadoAttribute(): string
     {
 	return "{$this->cidade} - {$this->estado}";
-    }    
+    }
 }

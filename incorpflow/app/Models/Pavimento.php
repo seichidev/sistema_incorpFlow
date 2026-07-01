@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Pavimento extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'construcao_id',
+        'nome',
+        'tipo',
+        'nivel',
+        'quantidade',
+    ];
+
+    public function construcao(): BelongsTo
+    {
+        return $this->belongsTo(Construcao::class);
+    }
+}
