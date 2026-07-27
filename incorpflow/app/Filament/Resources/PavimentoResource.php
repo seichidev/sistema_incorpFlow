@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PavimentoResource extends Resource
 {
@@ -20,6 +21,8 @@ class PavimentoResource extends Resource
     protected static ?string $modelLabel = 'Pavimento';
     protected static ?string $pluralModelLabel = 'Pavimentos';
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -49,6 +52,11 @@ class PavimentoResource extends Resource
                     ])
                     ->required(),
 
+                Forms\Components\TextInput::make('torre')
+                    ->label('Torre / Bloco')
+                    ->maxLength(100)
+                    ->placeholder('Ex: Torre A, Bloco 1'),
+
                 Forms\Components\TextInput::make('nivel')
                     ->label('Nível (m)')
                     ->numeric()
@@ -70,6 +78,12 @@ class PavimentoResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('construcao.nome')
                     ->label('Construção')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('torre')
+                    ->label('Torre / Bloco')
+                    ->default('-')
                     ->searchable()
                     ->sortable(),
 
@@ -123,6 +137,11 @@ class PavimentoResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('construcao');
     }
 
     public static function getRelations(): array

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UnidadeAutonoma extends Model
@@ -16,8 +17,8 @@ class UnidadeAutonoma extends Model
         'pavimento_id',
         'numero',
         'tipo',
-        'torre',
         'permutada',
+        'quantidade',
     ];
 
     protected $casts = [
@@ -27,5 +28,10 @@ class UnidadeAutonoma extends Model
     public function pavimento(): BelongsTo
     {
         return $this->belongsTo(Pavimento::class);
+    }
+
+    public function acabamentos(): MorphMany
+    {
+        return $this->morphMany(Acabamento::class, 'acabavel');
     }
 }

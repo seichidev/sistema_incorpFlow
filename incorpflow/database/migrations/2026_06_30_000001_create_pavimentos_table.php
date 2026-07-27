@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('construcao_id')->constrained('construcoes')->cascadeOnDelete();
             $table->string('nome');
+            $table->string('torre')->nullable();
             $table->enum('tipo', [
                 'Inferior',
                 'Terreo',

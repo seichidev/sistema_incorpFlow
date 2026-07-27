@@ -13,7 +13,6 @@ return new class extends Migration
             $table->foreignId('pavimento_id')->constrained('pavimentos')->cascadeOnDelete();
             $table->string('numero');
             $table->string('tipo');
-            $table->string('torre')->nullable();
             $table->boolean('permutada')->default(false);
             $table->timestamps();
             $table->softDeletes();

@@ -17,6 +17,7 @@ class Pavimento extends Model
         'tipo',
         'nivel',
         'quantidade',
+        'torre',
     ];
 
     public function construcao(): BelongsTo

@@ -36,6 +36,11 @@ class PavimentosRelationManager extends RelationManager
                     ])
                     ->required(),
 
+                Forms\Components\TextInput::make('torre')
+                    ->label('Torre / Bloco')
+                    ->maxLength(100)
+                    ->placeholder('Ex: Torre A, Bloco 1'),
+
                 Forms\Components\TextInput::make('nivel')
                     ->label('Nível (m)')
                     ->numeric()
@@ -55,6 +60,11 @@ class PavimentosRelationManager extends RelationManager
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('torre')
+                    ->label('Torre / Bloco')
+                    ->default('-')
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('nome')
                     ->label('Nome')
                     ->searchable(),
@@ -74,7 +84,9 @@ class PavimentosRelationManager extends RelationManager
                     ->label('Novo Pavimento'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
+                Tables\Actions\Action::make('editar')
+                    ->label('Editar')
+                    ->icon('heroicon-m-pencil-square')
                     ->url(fn ($record) => PavimentoResource::getUrl('edit', ['record' => $record])),
                 Tables\Actions\DeleteAction::make()
                     ->modalHeading('Deletar pavimento')

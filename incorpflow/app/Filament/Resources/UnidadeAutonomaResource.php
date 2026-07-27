@@ -23,6 +23,7 @@ class UnidadeAutonomaResource extends Resource
     protected static ?string $modelLabel = 'Unidade Autônoma';
     protected static ?string $pluralModelLabel = 'Unidades Autônomas';
     protected static ?string $navigationIcon = 'heroicon-o-home-modern';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
@@ -34,6 +35,11 @@ class UnidadeAutonomaResource extends Resource
                     ->searchable()
                     ->required()
                     ->live()
+                    ->afterStateHydrated(function (Forms\Components\Select $component, $record) {
+                        if ($record?->pavimento) {
+                            $component->state($record->pavimento->construcao_id);
+                        }
+                    })
                     ->afterStateUpdated(fn (Forms\Set $set) => $set('pavimento_id', null))
                     ->dehydrated(false),
 
@@ -66,15 +72,17 @@ class UnidadeAutonomaResource extends Resource
                         'Guarita',
                     ]),
 
-                Forms\Components\TextInput::make('torre')
-                    ->label('Torre')
-                    ->maxLength(100)
-                    ->placeholder('Ex: Torre Leste'),
-
                 Forms\Components\Toggle::make('permutada')
                     ->label('Permutada')
                     ->helperText('Unidade dada como pagamento do terreno')
                     ->default(false),
+
+                Forms\Components\TextInput::make('quantidade')
+                    ->label('Unidades idênticas')
+                    ->integer()
+                    ->default(1)
+                    ->minValue(1)
+                    ->required(),
             ]);
     }
 
@@ -84,6 +92,12 @@ class UnidadeAutonomaResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('pavimento.construcao.nome')
                     ->label('Construção')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('pavimento.torre')
+                    ->label('Torre / Bloco')
+                    ->default('-')
                     ->searchable()
                     ->sortable(),
 
@@ -102,11 +116,6 @@ class UnidadeAutonomaResource extends Resource
                     ->searchable()
                     ->badge(),
 
-                Tables\Columns\TextColumn::make('torre')
-                    ->label('Torre')
-                    ->searchable()
-                    ->default('-'),
-
                 Tables\Columns\IconColumn::make('permutada')
                     ->label('Permutada')
                     ->boolean(),
@@ -120,7 +129,12 @@ class UnidadeAutonomaResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('construcao')
                     ->label('Construção')
-                    ->relationship('pavimento.construcao', 'nome'),
+                    ->query(fn (Builder $query, array $data) =>
+                        $data['value']
+                            ? $query->whereHas('pavimento', fn ($q) => $q->where('construcao_id', $data['value']))
+                            : $query
+                    )
+                    ->options(Construcao::pluck('nome', 'id')),
 
                 Tables\Filters\SelectFilter::make('pavimento')
                     ->label('Pavimento')
@@ -146,6 +160,13 @@ class UnidadeAutonomaResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with('pavimento.construcao');
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            \App\Filament\Resources\UnidadeAutonomaResource\RelationManagers\AcabamentosRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

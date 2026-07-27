@@ -39,15 +39,17 @@ class UnidadesAutonomasRelationManager extends RelationManager
                         'Guarita',
                     ]),
 
-                Forms\Components\TextInput::make('torre')
-                    ->label('Torre')
-                    ->maxLength(100)
-                    ->placeholder('Ex: Torre Leste'),
-
                 Forms\Components\Toggle::make('permutada')
                     ->label('Permutada')
                     ->helperText('Unidade dada como pagamento do terreno')
                     ->default(false),
+
+                Forms\Components\TextInput::make('quantidade')
+                    ->label('Unidades idênticas')
+                    ->integer()
+                    ->default(1)
+                    ->minValue(1)
+                    ->required(),
             ]);
     }
 
@@ -65,10 +67,9 @@ class UnidadesAutonomasRelationManager extends RelationManager
                     ->searchable()
                     ->badge(),
 
-                Tables\Columns\TextColumn::make('torre')
-                    ->label('Torre')
-                    ->searchable()
-                    ->default('-'),
+                Tables\Columns\TextColumn::make('quantidade')
+                    ->label('Qtd.')
+                    ->sortable(),
 
                 Tables\Columns\IconColumn::make('permutada')
                     ->label('Permutada')

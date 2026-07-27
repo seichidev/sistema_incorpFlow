@@ -4,11 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ConstrucaoResource\Pages;
 use App\Models\Construcao;
+use App\Models\UnidadeAutonoma;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ConstrucaoResource extends Resource
 {
@@ -21,6 +23,7 @@ class ConstrucaoResource extends Resource
     protected static ?string $slug = 'construcoes';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -81,9 +84,6 @@ class ConstrucaoResource extends Resource
                     ->label('Explique com detalhes sobre essa construção')
 		    ->columnSpanFull(),
 
-		Forms\Components\TextInput::make('unidades')
-		    ->label('Unidades')
-		    ->required(),
             ]);
     }
 
@@ -99,9 +99,12 @@ class ConstrucaoResource extends Resource
                 Tables\Columns\TextColumn::make('status')->searchable(),
                 Tables\Columns\TextColumn::make('total_pavimentos')
                     ->label('Pavimentos')
-                    ->getStateUsing(fn ($record) => $record->pavimentos()->sum('quantidade'))
-                    ->default(0),
-		Tables\Columns\TextColumn::make('unidades')->searchable(),
+                    ->default(0)
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('total_unidades')
+                    ->label('Unidades')
+                    ->default(0)
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('responsavel')->searchable(),
                 
                 Tables\Columns\TextColumn::make('created_at')
@@ -134,10 +137,25 @@ class ConstrucaoResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withSum('pavimentos as total_pavimentos', 'quantidade')
+            ->addSelect([
+                'total_unidades' => UnidadeAutonoma::query()
+                    ->join('pavimentos', 'pavimentos.id', '=', 'unidades_autonomas.pavimento_id')
+                    ->whereColumn('pavimentos.construcao_id', 'construcoes.id')
+                    ->whereNull('pavimentos.deleted_at')
+                    ->selectRaw('coalesce(sum(unidades_autonomas.quantidade), 0)'),
+            ]);
+    }
+
     public static function getRelations(): array
     {
         return [
             \App\Filament\Resources\ConstrucaoResource\RelationManagers\PavimentosRelationManager::class,
+            \App\Filament\Resources\ConstrucaoResource\RelationManagers\EquipamentosRelationManager::class,
+            \App\Filament\Resources\ConstrucaoResource\RelationManagers\AcabamentosRelationManager::class,
         ];
     }
 
