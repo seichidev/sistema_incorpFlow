@@ -18,6 +18,11 @@ class Pavimento extends Model
         'nivel',
         'quantidade',
         'torre',
+        'area_construida',
+    ];
+
+    protected $casts = [
+        'area_construida' => 'decimal:4',
     ];
 
     public function construcao(): BelongsTo

@@ -162,9 +162,9 @@ class ConstrucaoResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListConstrucaos::route('/'),
-            'create' => Pages\CreateConstrucao::route('/create'),
-            'edit' => Pages\EditConstrucao::route('/{record}/edit'),
+            'index'  => Pages\ListarConstrucoes::route('/'),
+            'create' => Pages\CriarConstrucao::route('/create'),
+            'edit'   => Pages\EditarConstrucao::route('/{record}/edit'),
         ];
     }
 }

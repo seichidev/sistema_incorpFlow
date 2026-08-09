@@ -64,38 +64,41 @@ class AcabamentoResource extends Resource
                     ])
                     ->required(),
 
-                Forms\Components\TextInput::make('dependencia')
+                // Todos os campos descritivos são `text` no banco: o Quadro VIII
+                // chega a 365 caracteres em DEPENDÊNCIAS e a 210 em PEITORIS.
+                Forms\Components\Textarea::make('dependencia')
                     ->label('Dependência')
                     ->required()
-                    ->maxLength(255)
+                    ->rows(2)
                     ->placeholder('Ex: Sala Estar/Jantar, Hall Elevadores')
                     ->columnSpanFull(),
 
                 Forms\Components\Fieldset::make('Piso')
                     ->schema([
-                        Forms\Components\TextInput::make('piso_revestimento')->label('Revestimento'),
-                        Forms\Components\TextInput::make('piso_acabamento')->label('Acabamento'),
-                        Forms\Components\TextInput::make('piso_soleira')->label('Soleira'),
+                        Forms\Components\Textarea::make('piso_revestimento')->label('Revestimento')->rows(2),
+                        Forms\Components\Textarea::make('piso_acabamento')->label('Acabamento')->rows(2),
+                        Forms\Components\Textarea::make('piso_soleira')->label('Soleira')->rows(2),
                     ])
                     ->columns(3),
 
                 Forms\Components\Fieldset::make('Parede')
                     ->schema([
-                        Forms\Components\TextInput::make('parede_revestimento')->label('Revestimento'),
-                        Forms\Components\TextInput::make('parede_acabamento')->label('Acabamento'),
-                        Forms\Components\TextInput::make('parede_rodape')->label('Rodapé'),
+                        Forms\Components\Textarea::make('parede_revestimento')->label('Revestimento')->rows(2),
+                        Forms\Components\Textarea::make('parede_acabamento')->label('Acabamento')->rows(2),
+                        Forms\Components\Textarea::make('parede_rodape')->label('Rodapé')->rows(2),
                     ])
                     ->columns(3),
 
                 Forms\Components\Fieldset::make('Teto')
                     ->schema([
-                        Forms\Components\TextInput::make('teto_revestimento')->label('Revestimento'),
-                        Forms\Components\TextInput::make('teto_acabamento')->label('Acabamento'),
+                        Forms\Components\Textarea::make('teto_revestimento')->label('Revestimento')->rows(2),
+                        Forms\Components\Textarea::make('teto_acabamento')->label('Acabamento')->rows(2),
                     ])
                     ->columns(2),
 
-                Forms\Components\TextInput::make('peitoris')
+                Forms\Components\Textarea::make('peitoris')
                     ->label('Peitoris')
+                    ->rows(2)
                     ->columnSpanFull(),
             ]);
     }
@@ -104,7 +107,7 @@ class AcabamentoResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('acabavel_type')
+                Tables\Columns\TextColumn::make('acabavel_tipo')
                     ->label('Tipo')
                     ->formatStateUsing(fn (string $state) => match ($state) {
                         'App\Models\Construcao'      => 'Construção',
@@ -185,9 +188,9 @@ class AcabamentoResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListAcabamentos::route('/'),
-            'create' => Pages\CreateAcabamento::route('/create'),
-            'edit'   => Pages\EditAcabamento::route('/{record}/edit'),
+            'index'  => Pages\ListarAcabamentos::route('/'),
+            'create' => Pages\CriarAcabamento::route('/create'),
+            'edit'   => Pages\EditarAcabamento::route('/{record}/edit'),
         ];
     }
 }

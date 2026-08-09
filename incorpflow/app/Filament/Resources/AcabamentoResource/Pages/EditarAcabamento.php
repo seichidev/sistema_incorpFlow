@@ -6,7 +6,7 @@ use App\Filament\Resources\AcabamentoResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditAcabamento extends EditRecord
+class EditarAcabamento extends EditRecord
 {
     protected static string $resource = AcabamentoResource::class;
 

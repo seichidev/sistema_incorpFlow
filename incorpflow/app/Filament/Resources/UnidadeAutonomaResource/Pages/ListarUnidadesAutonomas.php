@@ -4,16 +4,16 @@ namespace App\Filament\Resources\UnidadeAutonomaResource\Pages;
 
 use App\Filament\Resources\UnidadeAutonomaResource;
 use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\ListRecords;
 
-class EditUnidadeAutonoma extends EditRecord
+class ListarUnidadesAutonomas extends ListRecords
 {
     protected static string $resource = UnidadeAutonomaResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\CreateAction::make(),
         ];
     }
 }

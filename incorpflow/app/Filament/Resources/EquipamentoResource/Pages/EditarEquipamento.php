@@ -6,7 +6,7 @@ use App\Filament\Resources\EquipamentoResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditEquipamento extends EditRecord
+class EditarEquipamento extends EditRecord
 {
     protected static string $resource = EquipamentoResource::class;
 

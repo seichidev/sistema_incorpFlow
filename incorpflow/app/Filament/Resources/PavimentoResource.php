@@ -30,7 +30,7 @@ class PavimentoResource extends Resource
             ->schema([
                 Forms\Components\Select::make('construcao_id')
                     ->label('Construção')
-                    ->options(Construcao::pluck('nome', 'id'))
+                    ->options(fn (): array => Construcao::orderBy('nome')->pluck('nome', 'id')->all())
                     ->searchable()
                     ->required(),
 
@@ -62,6 +62,12 @@ class PavimentoResource extends Resource
                     ->numeric()
                     ->step(0.01)
                     ->placeholder('Ex: 571.85'),
+
+                Forms\Components\TextInput::make('area_construida')
+                    ->label('Área construída (m²)')
+                    ->numeric()
+                    ->step(0.0001)
+                    ->helperText('Área de construção do pavimento — Quadro I (4 casas decimais)'),
 
                 Forms\Components\TextInput::make('quantidade')
                     ->label('Quantidade de pavimentos idênticos')
@@ -97,6 +103,12 @@ class PavimentoResource extends Resource
 
                 Tables\Columns\TextColumn::make('nivel')
                     ->label('Nível (m)')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('area_construida')
+                    ->label('Área (m²)')
+                    ->numeric(4)
+                    ->default('-')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('quantidade')
@@ -154,9 +166,9 @@ class PavimentoResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListPavimentos::route('/'),
-            'create' => Pages\CreatePavimento::route('/create'),
-            'edit'   => Pages\EditPavimento::route('/{record}/edit'),
+            'index'  => Pages\ListarPavimentos::route('/'),
+            'create' => Pages\CriarPavimento::route('/create'),
+            'edit'   => Pages\EditarPavimento::route('/{record}/edit'),
         ];
     }
 }

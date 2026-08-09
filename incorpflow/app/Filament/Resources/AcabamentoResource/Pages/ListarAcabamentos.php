@@ -6,7 +6,7 @@ use App\Filament\Resources\AcabamentoResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListAcabamentos extends ListRecords
+class ListarAcabamentos extends ListRecords
 {
     protected static string $resource = AcabamentoResource::class;
 

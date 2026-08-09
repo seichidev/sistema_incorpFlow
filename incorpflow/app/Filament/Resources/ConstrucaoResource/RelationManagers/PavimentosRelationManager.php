@@ -47,6 +47,12 @@ class PavimentosRelationManager extends RelationManager
                     ->step(0.01)
                     ->placeholder('Ex: 571.85'),
 
+                Forms\Components\TextInput::make('area_construida')
+                    ->label('Área construída (m²)')
+                    ->numeric()
+                    ->step(0.0001)
+                    ->helperText('Área de construção do pavimento — Quadro I (4 casas decimais)'),
+
                 Forms\Components\TextInput::make('quantidade')
                     ->label('Pavimentos idênticos')
                     ->integer()
@@ -75,6 +81,11 @@ class PavimentosRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('nivel')
                     ->label('Nível (m)'),
+
+                Tables\Columns\TextColumn::make('area_construida')
+                    ->label('Área (m²)')
+                    ->numeric(4)
+                    ->default('-'),
 
                 Tables\Columns\TextColumn::make('quantidade')
                     ->label('Qtd.'),

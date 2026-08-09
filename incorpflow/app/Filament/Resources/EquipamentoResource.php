@@ -29,7 +29,7 @@ class EquipamentoResource extends Resource
             ->schema([
                 Forms\Components\Select::make('construcao_id')
                     ->label('Construção')
-                    ->options(Construcao::pluck('nome', 'id'))
+                    ->options(fn (): array => Construcao::orderBy('nome')->pluck('nome', 'id')->all())
                     ->searchable()
                     ->required(),
 
@@ -109,9 +109,9 @@ class EquipamentoResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListEquipamentos::route('/'),
-            'create' => Pages\CreateEquipamento::route('/create'),
-            'edit'   => Pages\EditEquipamento::route('/{record}/edit'),
+            'index'  => Pages\ListarEquipamentos::route('/'),
+            'create' => Pages\CriarEquipamento::route('/create'),
+            'edit'   => Pages\EditarEquipamento::route('/{record}/edit'),
         ];
     }
 }

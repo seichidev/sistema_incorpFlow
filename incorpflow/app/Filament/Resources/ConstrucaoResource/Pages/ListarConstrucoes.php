@@ -4,16 +4,16 @@ namespace App\Filament\Resources\ConstrucaoResource\Pages;
 
 use App\Filament\Resources\ConstrucaoResource;
 use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\ListRecords;
 
-class EditConstrucao extends EditRecord
+class ListarConstrucoes extends ListRecords
 {
     protected static string $resource = ConstrucaoResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\CreateAction::make(),
         ];
     }
 }
