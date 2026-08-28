@@ -14,9 +14,17 @@ class EditarAcabamento extends EditRecord
     {
         return [
             Actions\DeleteAction::make()
-                ->modalHeading('Deletar acabamento')
-                ->modalDescription('Tem certeza que deseja deletar este acabamento? Esta ação não pode ser desfeita.')
-                ->modalSubmitActionLabel('Sim, deletar'),
+                ->label('Inativar')
+                ->icon('heroicon-m-archive-box-arrow-down')
+                ->modalHeading('Inativar acabamento')
+                ->modalDescription('O acabamento fica inativo e pode ser reativado depois.')
+                ->modalSubmitActionLabel('Sim, inativar')
+                ->successNotificationTitle('Registro inativado'),
+            Actions\RestoreAction::make()
+                ->label('Reativar')
+                ->successNotificationTitle('Registro reativado'),
+            Actions\ForceDeleteAction::make()
+                ->label('Excluir definitivamente'),
         ];
     }
 }

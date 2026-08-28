@@ -14,9 +14,17 @@ class EditarEquipamento extends EditRecord
     {
         return [
             Actions\DeleteAction::make()
-                ->modalHeading('Deletar equipamento')
-                ->modalDescription('Tem certeza que deseja deletar este equipamento? Esta ação não pode ser desfeita.')
-                ->modalSubmitActionLabel('Sim, deletar'),
+                ->label('Inativar')
+                ->icon('heroicon-m-archive-box-arrow-down')
+                ->modalHeading('Inativar equipamento')
+                ->modalDescription('O equipamento fica inativo e pode ser reativado depois.')
+                ->modalSubmitActionLabel('Sim, inativar')
+                ->successNotificationTitle('Registro inativado'),
+            Actions\RestoreAction::make()
+                ->label('Reativar')
+                ->successNotificationTitle('Registro reativado'),
+            Actions\ForceDeleteAction::make()
+                ->label('Excluir definitivamente'),
         ];
     }
 }

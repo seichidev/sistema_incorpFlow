@@ -11,6 +11,8 @@ use Filament\Forms\Get;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UnidadesAutonomasRelationManager extends RelationManager
 {
@@ -102,6 +104,7 @@ class UnidadesAutonomasRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([SoftDeletingScope::class]))
             ->columns([
                 Tables\Columns\TextColumn::make('numero')
                     ->label('Número(s)')
@@ -148,16 +151,36 @@ class UnidadesAutonomasRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make()
                     ->label('Nova Unidade'),
             ])
+            ->filters([
+                Tables\Filters\TrashedFilter::make()
+                    ->label('Situação')
+                    ->placeholder('Somente ativos')
+                    ->trueLabel('Ativos e inativos')
+                    ->falseLabel('Somente inativos'),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->modalHeading('Deletar unidade autônoma')
-                    ->modalDescription('Tem certeza que deseja deletar esta unidade? Esta ação não pode ser desfeita.')
-                    ->modalSubmitActionLabel('Sim, deletar'),
+                    ->label('Inativar')
+                    ->icon('heroicon-m-archive-box-arrow-down')
+                    ->modalHeading('Inativar unidade autônoma')
+                    ->modalDescription('A tipologia fica inativa junto com seus acabamentos. Ambos podem ser reativados depois.')
+                    ->modalSubmitActionLabel('Sim, inativar')
+                    ->successNotificationTitle('Registro inativado'),
+                Tables\Actions\RestoreAction::make()
+                    ->label('Reativar')
+                    ->successNotificationTitle('Registro reativado'),
+                Tables\Actions\ForceDeleteAction::make()
+                    ->label('Excluir definitivamente'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Inativar selecionados'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Reativar selecionados'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Excluir definitivamente'),
                 ]),
             ]);
     }

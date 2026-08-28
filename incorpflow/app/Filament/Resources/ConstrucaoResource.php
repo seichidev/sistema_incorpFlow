@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ConstrucaoResource extends Resource
 {
@@ -121,18 +122,37 @@ class ConstrucaoResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make()
+                    ->label('Situação')
+                    ->placeholder('Somente ativos')
+                    ->trueLabel('Ativos e inativos')
+                    ->falseLabel('Somente inativos'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->modalHeading('Deletar construção')
-                    ->modalDescription('Tem certeza que deseja deletar esta construção? Esta ação não pode ser desfeita.')
-                    ->modalSubmitActionLabel('Sim, deletar'),
+                    ->label('Inativar')
+                    ->icon('heroicon-m-archive-box-arrow-down')
+                    ->modalHeading('Inativar construção')
+                    ->modalDescription('A construção fica inativa junto com seus pavimentos, unidades, equipamentos e acabamentos. Todos podem ser reativados depois.')
+                    ->modalSubmitActionLabel('Sim, inativar')
+                    ->successNotificationTitle('Registro inativado'),
+                Tables\Actions\RestoreAction::make()
+                    ->label('Reativar')
+                    ->modalHeading('Reativar construção')
+                    ->modalDescription('A construção volta a ficar ativa, junto com os registros inativados com ela.')
+                    ->successNotificationTitle('Construção reativada'),
+                Tables\Actions\ForceDeleteAction::make()
+                    ->label('Excluir definitivamente'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Inativar selecionados'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Reativar selecionados'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Excluir definitivamente'),
                 ]),
             ]);
     }
@@ -140,6 +160,7 @@ class ConstrucaoResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class])
             ->withSum('pavimentos as total_pavimentos', 'quantidade')
             ->addSelect([
                 'total_unidades' => UnidadeAutonoma::query()
@@ -168,4 +189,3 @@ class ConstrucaoResource extends Resource
         ];
     }
 }
-

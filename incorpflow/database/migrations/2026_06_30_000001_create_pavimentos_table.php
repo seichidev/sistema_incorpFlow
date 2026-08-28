@@ -24,8 +24,16 @@ return new class extends Migration
             ]);
             $table->decimal('nivel', 8, 2)->nullable();
             $table->integer('quantidade')->default(1);
+
+            // Área de construção do pavimento — Quadro I da NBR 12.721.
+            // Precisão exata: ponto flutuante binário não representa 71,6917 sem erro.
+            $table->decimal('area_construida', 12, 4)->nullable();
+
             $table->timestamps();
             $table->softDeletes();
+
+            // O PostgreSQL não cria índice para chave estrangeira automaticamente.
+            $table->index('construcao_id');
         });
     }
 

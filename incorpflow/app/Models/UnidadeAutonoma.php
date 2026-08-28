@@ -113,4 +113,22 @@ class UnidadeAutonoma extends Model
     {
         return $this->morphMany(Acabamento::class, 'acabavel');
     }
+
+    /**
+     * Composição: os acabamentos acompanham a unidade na exclusão e na restauração.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (UnidadeAutonoma $unidade): void {
+            if ($unidade->isForceDeleting()) {
+                return;
+            }
+
+            $unidade->acabamentos()->get()->each->delete();
+        });
+
+        static::restoring(function (UnidadeAutonoma $unidade): void {
+            $unidade->acabamentos()->onlyTrashed()->get()->each->restore();
+        });
+    }
 }

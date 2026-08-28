@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class EquipamentoResource extends Resource
 {
@@ -86,24 +87,45 @@ class EquipamentoResource extends Resource
                 Tables\Filters\SelectFilter::make('construcao')
                     ->label('Construção')
                     ->relationship('construcao', 'nome'),
+
+                Tables\Filters\TrashedFilter::make()
+                    ->label('Situação')
+                    ->placeholder('Somente ativos')
+                    ->trueLabel('Ativos e inativos')
+                    ->falseLabel('Somente inativos'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->modalHeading('Deletar equipamento')
-                    ->modalDescription('Tem certeza que deseja deletar este equipamento? Esta ação não pode ser desfeita.')
-                    ->modalSubmitActionLabel('Sim, deletar'),
+                    ->label('Inativar')
+                    ->icon('heroicon-m-archive-box-arrow-down')
+                    ->modalHeading('Inativar equipamento')
+                    ->modalDescription('O equipamento fica inativo e pode ser reativado depois.')
+                    ->modalSubmitActionLabel('Sim, inativar')
+                    ->successNotificationTitle('Registro inativado'),
+                Tables\Actions\RestoreAction::make()
+                    ->label('Reativar')
+                    ->successNotificationTitle('Registro reativado'),
+                Tables\Actions\ForceDeleteAction::make()
+                    ->label('Excluir definitivamente'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Inativar selecionados'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Reativar selecionados'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Excluir definitivamente'),
                 ]),
             ]);
     }
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('construcao');
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class])
+            ->with('construcao');
     }
 
     public static function getPages(): array

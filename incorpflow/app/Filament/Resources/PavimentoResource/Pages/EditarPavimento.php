@@ -13,7 +13,15 @@ class EditarPavimento extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Inativar')
+                ->icon('heroicon-m-archive-box-arrow-down')
+                ->successNotificationTitle('Registro inativado'),
+            Actions\RestoreAction::make()
+                ->label('Reativar')
+                ->successNotificationTitle('Registro reativado'),
+            Actions\ForceDeleteAction::make()
+                ->label('Excluir definitivamente'),
         ];
     }
 }

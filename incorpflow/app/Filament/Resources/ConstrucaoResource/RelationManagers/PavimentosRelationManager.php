@@ -8,6 +8,8 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PavimentosRelationManager extends RelationManager
 {
@@ -65,6 +67,7 @@ class PavimentosRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([SoftDeletingScope::class]))
             ->columns([
                 Tables\Columns\TextColumn::make('torre')
                     ->label('Torre / Bloco')
@@ -94,19 +97,39 @@ class PavimentosRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make()
                     ->label('Novo Pavimento'),
             ])
+            ->filters([
+                Tables\Filters\TrashedFilter::make()
+                    ->label('Situação')
+                    ->placeholder('Somente ativos')
+                    ->trueLabel('Ativos e inativos')
+                    ->falseLabel('Somente inativos'),
+            ])
             ->actions([
                 Tables\Actions\Action::make('editar')
                     ->label('Editar')
                     ->icon('heroicon-m-pencil-square')
                     ->url(fn ($record) => PavimentoResource::getUrl('edit', ['record' => $record])),
                 Tables\Actions\DeleteAction::make()
-                    ->modalHeading('Deletar pavimento')
-                    ->modalDescription('Tem certeza que deseja deletar este pavimento?')
-                    ->modalSubmitActionLabel('Sim, deletar'),
+                    ->label('Inativar')
+                    ->icon('heroicon-m-archive-box-arrow-down')
+                    ->modalHeading('Inativar pavimento')
+                    ->modalDescription('O pavimento fica inativo junto com suas unidades autônomas. Ambos podem ser reativados depois.')
+                    ->modalSubmitActionLabel('Sim, inativar')
+                    ->successNotificationTitle('Registro inativado'),
+                Tables\Actions\RestoreAction::make()
+                    ->label('Reativar')
+                    ->successNotificationTitle('Registro reativado'),
+                Tables\Actions\ForceDeleteAction::make()
+                    ->label('Excluir definitivamente'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Inativar selecionados'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Reativar selecionados'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Excluir definitivamente'),
                 ]),
             ]);
     }

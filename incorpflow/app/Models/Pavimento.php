@@ -34,4 +34,23 @@ class Pavimento extends Model
     {
         return $this->hasMany(UnidadeAutonoma::class);
     }
+
+    /**
+     * Composição: as unidades autônomas acompanham o pavimento na exclusão
+     * e na restauração.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Pavimento $pavimento): void {
+            if ($pavimento->isForceDeleting()) {
+                return;
+            }
+
+            $pavimento->unidadesAutonomas()->get()->each->delete();
+        });
+
+        static::restoring(function (Pavimento $pavimento): void {
+            $pavimento->unidadesAutonomas()->onlyTrashed()->get()->each->restore();
+        });
+    }
 }

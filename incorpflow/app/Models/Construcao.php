@@ -43,4 +43,27 @@ class Construcao extends Model
     {
 	return "{$this->cidade} - {$this->estado}";
     }
+
+    /**
+     * Composição: pavimentos, equipamentos e acabamentos acompanham a construção
+     * na exclusão e na restauração.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Construcao $construcao): void {
+            if ($construcao->isForceDeleting()) {
+                return;
+            }
+
+            $construcao->pavimentos()->get()->each->delete();
+            $construcao->equipamentos()->get()->each->delete();
+            $construcao->acabamentos()->get()->each->delete();
+        });
+
+        static::restoring(function (Construcao $construcao): void {
+            $construcao->pavimentos()->onlyTrashed()->get()->each->restore();
+            $construcao->equipamentos()->onlyTrashed()->get()->each->restore();
+            $construcao->acabamentos()->onlyTrashed()->get()->each->restore();
+        });
+    }
 }

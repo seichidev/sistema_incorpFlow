@@ -17,6 +17,8 @@ return new class extends Migration
             $table->text('detalhes_gerais')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('construcao_id');
         });
     }
 

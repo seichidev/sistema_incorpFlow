@@ -12,6 +12,8 @@ use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class AcabamentoResource extends Resource
 {
@@ -107,7 +109,7 @@ class AcabamentoResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('acabavel_tipo')
+                Tables\Columns\TextColumn::make('acabavel_type')
                     ->label('Tipo')
                     ->formatStateUsing(fn (string $state) => match ($state) {
                         'App\Models\Construcao'      => 'Construção',
@@ -170,19 +172,44 @@ class AcabamentoResource extends Resource
                         'Privativo' => 'Privativo',
                         'Comum'     => 'Comum',
                     ]),
+
+                Tables\Filters\TrashedFilter::make()
+                    ->label('Situação')
+                    ->placeholder('Somente ativos')
+                    ->trueLabel('Ativos e inativos')
+                    ->falseLabel('Somente inativos'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->modalHeading('Deletar acabamento')
-                    ->modalDescription('Tem certeza que deseja deletar este acabamento? Esta ação não pode ser desfeita.')
-                    ->modalSubmitActionLabel('Sim, deletar'),
+                    ->label('Inativar')
+                    ->icon('heroicon-m-archive-box-arrow-down')
+                    ->modalHeading('Inativar acabamento')
+                    ->modalDescription('O acabamento fica inativo e pode ser reativado depois.')
+                    ->modalSubmitActionLabel('Sim, inativar')
+                    ->successNotificationTitle('Registro inativado'),
+                Tables\Actions\RestoreAction::make()
+                    ->label('Reativar')
+                    ->successNotificationTitle('Registro reativado'),
+                Tables\Actions\ForceDeleteAction::make()
+                    ->label('Excluir definitivamente'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Inativar selecionados'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Reativar selecionados'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Excluir definitivamente'),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array
