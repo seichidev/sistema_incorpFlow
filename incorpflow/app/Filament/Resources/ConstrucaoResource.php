@@ -7,11 +7,15 @@ use App\Models\Construcao;
 use App\Models\UnidadeAutonoma;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class ConstrucaoResource extends Resource
 {
@@ -31,60 +35,82 @@ class ConstrucaoResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('nome')
-                    ->label("Nome completo")
-	            ->required()
+                    ->label('Nome completo')
+                    ->required()
                     ->maxLength(255),
-
 
                 Forms\Components\TextInput::make('endereco')
-		    ->label("Endereço")
+                    ->label('Endereço')
                     ->required()
                     ->maxLength(255),
 
-
-                Forms\Components\TextInput::make('cidade')
-                    ->label("Cidade")
-	            ->required()
-                    ->maxLength(255),
-
-
-                Forms\Components\TextInput::make('estado')
-		    ->label('UF')
+                Forms\Components\Select::make('estado')
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set): mixed => $set('cidade', null))
+                    ->options([
+                        'AC' => 'Acre', 'AL' => 'Alagoas', 'AP' => 'Amapá', 'AM' => 'Amazonas',
+                        'BA' => 'Bahia', 'CE' => 'Ceará', 'DF' => 'Distrito Federal', 'ES' => 'Espírito Santo',
+                        'GO' => 'Goiás', 'MA' => 'Maranhão', 'MT' => 'Mato Grosso', 'MS' => 'Mato Grosso do Sul',
+                        'MG' => 'Minas Gerais', 'PA' => 'Pará', 'PB' => 'Paraíba', 'PR' => 'Paraná',
+                        'PE' => 'Pernambuco', 'PI' => 'Piauí', 'RJ' => 'Rio de Janeiro', 'RN' => 'Rio Grande do Norte',
+                        'RS' => 'Rio Grande do Sul', 'RO' => 'Rondônia', 'RR' => 'Roraima', 'SC' => 'Santa Catarina',
+                        'SP' => 'São Paulo', 'SE' => 'Sergipe', 'TO' => 'Tocantins',
+                    ])
                     ->required()
-                    ->maxLength(2),
+                    ->searchable(),
 
+                Forms\Components\Select::make('cidade')
+                    ->label('Cidade')
+                    ->options(function (Get $get): array {
+                        $estado = $get('estado');
+
+                        if (blank($estado)) {
+                            return [];
+                        }
+
+                        return Cache::remember("ibge-municipios-{$estado}", now()->addDay(), function () use ($estado): array {
+                            return Http::timeout(5)
+                                ->get("https://servicodados.ibge.gov.br/api/v1/localidades/estados/{$estado}/municipios")
+                                ->throw()
+                                ->collect()
+                                ->pluck('nome', 'nome')
+                                ->sort()
+                                ->all();
+                        });
+                    })
+                    ->disabled(fn (Get $get): bool => blank($get('estado')))
+                    ->searchable()
+                    ->required(),
 
                 Forms\Components\Select::make('tipo')
-		    ->options([
+                    ->label('Tipo')
+                    ->options([
                         'Residencial' => 'Residencial',
-		        'Comercial' => 'Comercial',
-		        'Misto' => 'Misto',
-		        'Industrial' => 'Industrial',
-		    ])
-		    ->required(),
-
+                        'Comercial'   => 'Comercial',
+                        'Misto'       => 'Misto',
+                        'Industrial'  => 'Industrial',
+                    ])
+                    ->required(),
 
                 Forms\Components\Select::make('status')
+                    ->label('Status')
                     ->options([
-		        'Planejamento' => 'Planejamento',
-			'Em construção' => 'Em construção',
-			'Concluída' => 'Concluída',
-			'Suspensa' => 'Suspensa',
-		    ])
+                        'Planejamento'  => 'Planejamento',
+                        'Em construção' => 'Em construção',
+                        'Concluída'     => 'Concluída',
+                        'Suspensa'      => 'Suspensa',
+                    ])
                     ->default('Planejamento')
-	            ->required(),
-
+                    ->required(),
 
                 Forms\Components\TextInput::make('responsavel')
-		    ->label('Responsável')
+                    ->label('Responsável')
                     ->required()
                     ->maxLength(255),
-
 
                 Forms\Components\Textarea::make('descricao')
                     ->label('Explique com detalhes sobre essa construção')
-		    ->columnSpanFull(),
-
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -160,6 +186,7 @@ class ConstrucaoResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->select('construcoes.*')
             ->withoutGlobalScopes([SoftDeletingScope::class])
             ->withSum('pavimentos as total_pavimentos', 'quantidade')
             ->addSelect([
@@ -167,6 +194,7 @@ class ConstrucaoResource extends Resource
                     ->join('pavimentos', 'pavimentos.id', '=', 'unidades_autonomas.pavimento_id')
                     ->whereColumn('pavimentos.construcao_id', 'construcoes.id')
                     ->whereNull('pavimentos.deleted_at')
+                    ->whereNull('unidades_autonomas.deleted_at') // CORREÇÃO: Ignorar unidades que sofreram soft delete
                     ->selectRaw('coalesce(sum(unidades_autonomas.quantidade), 0)'),
             ]);
     }
