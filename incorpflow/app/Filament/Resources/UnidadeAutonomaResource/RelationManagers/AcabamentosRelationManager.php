@@ -28,8 +28,6 @@ class AcabamentosRelationManager extends RelationManager
                     ->default('Privativo')
                     ->required(),
 
-                // Todos os campos descritivos são `text` no banco: o Quadro VII
-                // chega a 202 caracteres em TETOS/ACABAMENTO e a 191 em PAREDES.
                 Forms\Components\Textarea::make('dependencia')
                     ->label('Dependência')
                     ->required()

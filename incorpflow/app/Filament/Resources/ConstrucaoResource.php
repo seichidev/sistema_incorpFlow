@@ -68,15 +68,23 @@ class ConstrucaoResource extends Resource
                             return [];
                         }
 
-                        return Cache::remember("ibge-municipios-{$estado}", now()->addDay(), function () use ($estado): array {
-                            return Http::timeout(5)
-                                ->get("https://servicodados.ibge.gov.br/api/v1/localidades/estados/{$estado}/municipios")
-                                ->throw()
-                                ->collect()
-                                ->pluck('nome', 'nome')
-                                ->sort()
-                                ->all();
-                        });
+                        // A lista vem do IBGE. Sem rede (ou sem CA bundle no PHP) a chamada
+                        // lança ConnectionException; sem o catch, a exceção sobe e derruba a
+                        // renderização do formulário — inclusive ao abrir uma edição, em que
+                        // o estado já vem preenchido.
+                        try {
+                            return Cache::remember("ibge-municipios-{$estado}", now()->addDay(), function () use ($estado): array {
+                                return Http::timeout(5)
+                                    ->get("https://servicodados.ibge.gov.br/api/v1/localidades/estados/{$estado}/municipios")
+                                    ->throw()
+                                    ->collect()
+                                    ->pluck('nome', 'nome')
+                                    ->sort()
+                                    ->all();
+                            });
+                        } catch (\Throwable) {
+                            return [];
+                        }
                     })
                     ->disabled(fn (Get $get): bool => blank($get('estado')))
                     ->searchable()

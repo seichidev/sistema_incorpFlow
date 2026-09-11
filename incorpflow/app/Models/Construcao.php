@@ -44,10 +44,6 @@ class Construcao extends Model
 	return "{$this->cidade} - {$this->estado}";
     }
 
-    /**
-     * Composição: pavimentos, equipamentos e acabamentos acompanham a construção
-     * na exclusão e na restauração.
-     */
     protected static function booted(): void
     {
         static::deleting(function (Construcao $construcao): void {
