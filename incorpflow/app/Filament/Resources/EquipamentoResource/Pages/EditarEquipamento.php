@@ -27,4 +27,9 @@ class EditarEquipamento extends EditRecord
                 ->label('Excluir definitivamente'),
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('filament.admin.resources.equipamentos.index');
+    }
 }

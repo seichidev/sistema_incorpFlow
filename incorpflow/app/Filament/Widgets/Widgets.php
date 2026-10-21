@@ -9,7 +9,7 @@ use App\Models\Pavimento;
 use App\Models\UnidadeAutonoma;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
-class Dashboard extends BaseWidget
+class Widgets extends BaseWidget
 {
     protected function getStats(): array
     {

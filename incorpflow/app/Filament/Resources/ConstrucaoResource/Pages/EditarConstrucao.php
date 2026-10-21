@@ -24,4 +24,9 @@ class EditarConstrucao extends EditRecord
                 ->label('Excluir definitivamente'),
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('filament.admin.resources.construcoes.index');
+    }
 }
