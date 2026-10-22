@@ -10,6 +10,7 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -28,6 +29,19 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->registration()
+            ->renderHook(
+                PanelsRenderHook::STYLES_AFTER,
+                fn (): string => '<style>
+                    .fi-simple-layout {
+                        background-image:
+                            linear-gradient(rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.28)),
+                            url("/images/701990-1920x1080p-petronas-twin-towers-background-image.jpg");
+                        background-position: center;
+                        background-repeat: no-repeat;
+                        background-size: cover;
+                    }
+                </style>',
+            )
             ->sidebarCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Blue,
