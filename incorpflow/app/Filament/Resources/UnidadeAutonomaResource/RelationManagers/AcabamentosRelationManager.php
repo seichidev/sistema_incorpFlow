@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\UnidadeAutonomaResource\RelationManagers;
 
+use App\Filament\Resources\AcabamentoResource;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -28,12 +29,7 @@ class AcabamentosRelationManager extends RelationManager
                     ->default('Privativo')
                     ->required(),
 
-                Forms\Components\Textarea::make('dependencia')
-                    ->label('Dependência')
-                    ->required()
-                    ->rows(2)
-                    ->placeholder('Ex: Sala Estar/Jantar, BWC, Cozinha')
-                    ->columnSpanFull(),
+                AcabamentoResource::campoDependencia(),
 
                 Forms\Components\Fieldset::make('Piso')
                     ->schema([
@@ -109,6 +105,7 @@ class AcabamentosRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                AcabamentoResource::acaoDuplicar(),
                 Tables\Actions\DeleteAction::make()
                     ->label('Inativar')
                     ->icon('heroicon-m-archive-box-arrow-down')

@@ -312,6 +312,44 @@ try {
         verifica('consultável sem o escopo',
             Construcao::withoutGlobalScope('ocultar_excluidos')->withTrashed()->find($c->id)?->foiExcluidoDefinitivamente() === true);
 
+        // ══════════════ 12. ACABAMENTOS: DEPENDÊNCIA, DUPLICAR, NORMALIZAÇÃO ══════════════
+        secao('12. Acabamentos: dependência, duplicar, normalização');
+
+        $cA = Construcao::create([
+            'nome' => 'Construção dos Acabamentos', 'endereco' => 'Rua de Teste, 3',
+            'cidade' => 'Londrina', 'estado' => 'PR', 'tipo' => 'Residencial',
+            'status' => 'Planejamento', 'responsavel' => 'Eng. Teste',
+        ]);
+        $a = $cA->acabamentos()->create([
+            'escopo' => 'Comum',
+            'dependencia' => '  hall de entrada ,sala técnica  ',
+            'piso_revestimento' => "  porcelanato  polido\u{00A0}90x90 cm ",
+            'parede_revestimento' => "Massa corrida  \n  pintura acrílica",
+            'teto_acabamento' => '   ',
+        ]);
+        verifica('espaços repetidos e das pontas removidos', $a->piso_revestimento === 'Porcelanato polido 90x90 cm');
+        verifica('quebra de linha preservada', $a->parede_revestimento === "Massa corrida\npintura acrílica");
+        verifica('campo só com espaços vira vazio', $a->teto_acabamento === null);
+        verifica('dependências padronizadas, separadas por ", "', $a->dependencia === 'Hall de entrada, Sala técnica');
+        verifica('gravado assim no banco, não só no objeto',
+            DB::table('acabamentos')->where('id', $a->id)->value('piso_revestimento') === 'Porcelanato polido 90x90 cm');
+
+        $sugestoes = Acabamento::sugestoesDeDependencia();
+        verifica('sugestões trazem a lista padrão', in_array('Área de serviço', $sugestoes, true));
+        verifica('sugestões trazem as já usadas, separadas',
+            in_array('Sala técnica', $sugestoes, true) && ! in_array('Hall de entrada, Sala técnica', $sugestoes, true));
+
+        // Duplicar pelo mesmo caminho da ação da tela: replicate, fill, save.
+        $a->delete(); // duplicar um registro inativo
+        $copia = $a->replicate(App\Filament\Resources\AcabamentoResource::acaoDuplicar()->getExcludedAttributes());
+        $copia->fill(['dependencia' => 'quarto'])->save();
+        verifica('cópia leva piso, parede e teto',
+            $copia->piso_revestimento === $a->piso_revestimento && $copia->parede_revestimento === $a->parede_revestimento);
+        verifica('cópia mantém o vínculo', $copia->acabavel->is($cA));
+        verifica('cópia com a dependência nova', $copia->fresh()->dependencia === 'Quarto');
+        verifica('cópia de um inativo nasce ativa', Acabamento::find($copia->id) !== null);
+        verifica('original não muda', Acabamento::withTrashed()->find($a->id)->dependencia === 'Hall de entrada, Sala técnica');
+
         throw new RuntimeException('__desfazer__');
     });
 } catch (RuntimeException $e) {

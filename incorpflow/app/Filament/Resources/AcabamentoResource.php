@@ -70,12 +70,7 @@ class AcabamentoResource extends Resource
 
                 // Todos os campos descritivos são `text` no banco: o Quadro VIII
                 // chega a 365 caracteres em DEPENDÊNCIAS e a 210 em PEITORIS.
-                Forms\Components\Textarea::make('dependencia')
-                    ->label('Dependência')
-                    ->required()
-                    ->rows(2)
-                    ->placeholder('Ex: Sala Estar/Jantar, Hall Elevadores')
-                    ->columnSpanFull(),
+                static::campoDependencia(),
 
                 Forms\Components\Fieldset::make('Piso')
                     ->schema([
@@ -191,6 +186,7 @@ class AcabamentoResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                static::acaoDuplicar(),
                 Tables\Actions\DeleteAction::make()
                     ->label('Inativar')
                     ->icon('heroicon-m-archive-box-arrow-down')
@@ -229,5 +225,42 @@ class AcabamentoResource extends Resource
             'create' => Pages\CriarAcabamento::route('/create'),
             'edit'   => Pages\EditarAcabamento::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Dependência como etiquetas: sugere a lista padrão e as já usadas, mas
+     * aceita qualquer texto. Uma linha pode reunir várias dependências com o
+     * mesmo acabamento, como o memorial costuma fazer ("Sala de estar, Cozinha").
+     * Também usado nos formulários de acabamento da construção e da unidade.
+     */
+    public static function campoDependencia(): Forms\Components\TagsInput
+    {
+        return Forms\Components\TagsInput::make('dependencia')
+            ->label('Dependência')
+            ->separator(', ')
+            ->splitKeys(['Tab', ','])
+            ->suggestions(fn (): array => Acabamento::sugestoesDeDependencia())
+            ->placeholder('Adicionar dependência')
+            ->helperText('Tecle Enter ou vírgula após cada uma. Dependências com o mesmo acabamento podem ficar na mesma linha.')
+            ->required()
+            ->columnSpanFull();
+    }
+
+    /**
+     * Copia o acabamento para outra dependência do mesmo vínculo: piso, parede,
+     * teto e peitoris vêm do original, e só a dependência é informada.
+     */
+    public static function acaoDuplicar(): Tables\Actions\ReplicateAction
+    {
+        return Tables\Actions\ReplicateAction::make()
+            ->label('Duplicar')
+            ->modalHeading('Duplicar acabamento')
+            ->modalDescription('A cópia leva piso, parede, teto e peitoris. Informe a dependência dela.')
+            ->modalSubmitActionLabel('Duplicar')
+            // deleted_at e excluido_em fora da cópia: duplicar um inativo gera um registro ativo.
+            ->excludeAttributes(['dependencia', 'deleted_at', 'excluido_em'])
+            ->mutateRecordDataUsing(fn (array $data): array => [...$data, 'dependencia' => null])
+            ->form([static::campoDependencia()])
+            ->successNotificationTitle('Acabamento duplicado');
     }
 }
