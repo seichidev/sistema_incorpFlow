@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ExcluiDefinitivamente;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Construcao extends Model
 {
+    use ExcluiDefinitivamente;
     use SoftDeletes;
 
     protected $table = 'construcoes';
@@ -42,6 +44,13 @@ class Construcao extends Model
     public function getCidadeEstadoAttribute(): string
     {
 	return "{$this->cidade} - {$this->estado}";
+    }
+
+    protected function excluirDependentesDefinitivamente(): void
+    {
+        $this->pavimentos()->withTrashed()->get()->each->excluirDefinitivamente();
+        $this->equipamentos()->withTrashed()->get()->each->excluirDefinitivamente();
+        $this->acabamentos()->withTrashed()->get()->each->excluirDefinitivamente();
     }
 
     protected static function booted(): void

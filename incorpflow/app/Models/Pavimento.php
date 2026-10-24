@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ExcluiDefinitivamente;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pavimento extends Model
 {
+    use ExcluiDefinitivamente;
     use SoftDeletes;
 
     protected $fillable = [
@@ -33,6 +35,11 @@ class Pavimento extends Model
     public function unidadesAutonomas(): HasMany
     {
         return $this->hasMany(UnidadeAutonoma::class);
+    }
+
+    protected function excluirDependentesDefinitivamente(): void
+    {
+        $this->unidadesAutonomas()->withTrashed()->get()->each->excluirDefinitivamente();
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ExcluiDefinitivamente;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UnidadeAutonoma extends Model
 {
+    use ExcluiDefinitivamente;
     use SoftDeletes;
 
     protected $table = 'unidades_autonomas';
@@ -112,6 +114,11 @@ class UnidadeAutonoma extends Model
     public function acabamentos(): MorphMany
     {
         return $this->morphMany(Acabamento::class, 'acabavel');
+    }
+
+    protected function excluirDependentesDefinitivamente(): void
+    {
+        $this->acabamentos()->withTrashed()->get()->each->excluirDefinitivamente();
     }
 
     /**

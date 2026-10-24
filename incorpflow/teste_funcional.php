@@ -250,12 +250,35 @@ try {
         // ══════════════ 11. EXCLUSÃO DEFINITIVA ══════════════
         secao('11. Exclusão definitiva');
 
-        $idPavimento = $p->id;
-        $idUnidade = $u->id;
-        Construcao::withTrashed()->find($c->id)->forceDelete();
-        verifica('construção sai do banco', Construcao::withTrashed()->find($c->id) === null);
-        verifica('pavimento sai por CASCADE do banco', Pavimento::withTrashed()->find($idPavimento) === null);
-        verifica('unidade sai por CASCADE do banco', UnidadeAutonoma::withTrashed()->find($idUnidade) === null);
+        // A exclusão definitiva não apaga a linha: só preenche excluido_em.
+        $c->pavimentos()->first()->delete(); // um dependente já inativo antes da exclusão
+        $c->delete();
+        verifica('ação retorna sucesso', Construcao::withTrashed()->find($c->id)->excluirDefinitivamente() === true);
+
+        $noBanco = fn (string $tabela, int $id) => DB::table($tabela)->where('id', $id)->first();
+        $excluido = fn (string $tabela, int $id) => $noBanco($tabela, $id)?->excluido_em !== null
+            && $noBanco($tabela, $id)?->deleted_at !== null;
+
+        verifica('construção continua no banco', $noBanco('construcoes', $c->id) !== null);
+        verifica('construção marcada como excluída', $excluido('construcoes', $c->id));
+        verifica('pavimento excluído junto', $excluido('pavimentos', $p->id));
+        verifica('unidade excluída junto', $excluido('unidades_autonomas', $u->id));
+        verifica('acabamento da unidade excluído junto', $excluido('acabamentos', $aU->id));
+        verifica('acabamento da construção excluído junto', $excluido('acabamentos', $aC->id));
+        verifica('equipamentos excluídos junto',
+            DB::table('equipamentos')->where('construcao_id', $c->id)->whereNull('excluido_em')->count() === 0);
+
+        verifica('some mesmo com withTrashed', Construcao::withTrashed()->find($c->id) === null);
+        verifica('some do filtro "inativos" da listagem',
+            App\Filament\Resources\ConstrucaoResource::getEloquentQuery()->onlyTrashed()->whereKey($c->id)->doesntExist());
+        verifica('some da tela de pavimentos',
+            App\Filament\Resources\PavimentoResource::getEloquentQuery()->whereKey($p->id)->doesntExist());
+        verifica('some da tela de equipamentos',
+            App\Filament\Resources\EquipamentoResource::getEloquentQuery()->where('construcao_id', $c->id)->doesntExist());
+        verifica('some da tela de acabamentos',
+            App\Filament\Resources\AcabamentoResource::getEloquentQuery()->whereKey([$aC->id, $aU->id])->doesntExist());
+        verifica('consultável sem o escopo',
+            Construcao::withoutGlobalScope('ocultar_excluidos')->withTrashed()->find($c->id)?->foiExcluidoDefinitivamente() === true);
 
         throw new RuntimeException('__desfazer__');
     });
