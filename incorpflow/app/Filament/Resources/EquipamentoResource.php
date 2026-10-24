@@ -32,7 +32,8 @@ class EquipamentoResource extends Resource
                     ->label('Construção')
                     ->options(fn (): array => Construcao::orderBy('nome')->pluck('nome', 'id')->all())
                     ->searchable()
-                    ->required(),
+                    ->placeholder('Sem construção')
+                    ->helperText('Opcional: o equipamento pode ser cadastrado antes da construção e vinculado depois.'),
 
                 Forms\Components\TextInput::make('nome')
                     ->label('Equipamento')
@@ -60,6 +61,7 @@ class EquipamentoResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('construcao.nome')
                     ->label('Construção')
+                    ->placeholder('Sem construção')
                     ->searchable()
                     ->sortable(),
 
@@ -84,6 +86,13 @@ class EquipamentoResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\TernaryFilter::make('construcao_id')
+                    ->label('Vínculo')
+                    ->nullable()
+                    ->placeholder('Todos')
+                    ->trueLabel('Com construção')
+                    ->falseLabel('Sem construção'),
+
                 Tables\Filters\SelectFilter::make('construcao')
                     ->label('Construção')
                     ->relationship('construcao', 'nome'),
@@ -125,7 +134,9 @@ class EquipamentoResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->with('construcao');
+            // withTrashed: equipamento de construção inativa continua mostrando o
+            // nome dela; "Sem construção" fica só para quem não tem vínculo.
+            ->with(['construcao' => fn ($query) => $query->withTrashed()]);
     }
 
     public static function getPages(): array

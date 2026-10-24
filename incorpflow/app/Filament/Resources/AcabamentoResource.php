@@ -36,7 +36,9 @@ class AcabamentoResource extends Resource
                         'App\Models\Construcao'      => 'Construção',
                         'App\Models\UnidadeAutonoma' => 'Unidade Autônoma',
                     ])
-                    ->required()
+                    ->placeholder('Sem vínculo')
+                    ->helperText('Opcional: o acabamento pode ser cadastrado antes da construção ou da unidade e vinculado depois.')
+                    ->requiredWith('acabavel_id')
                     ->live()
                     ->afterStateUpdated(fn (Forms\Set $set) => $set('acabavel_id', null)),
 
@@ -56,7 +58,7 @@ class AcabamentoResource extends Resource
                         };
                     })
                     ->searchable()
-                    ->required(),
+                    ->requiredWith('acabavel_type'),
 
                 Forms\Components\Select::make('escopo')
                     ->label('Escopo')
@@ -111,6 +113,7 @@ class AcabamentoResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('acabavel_type')
                     ->label('Tipo')
+                    ->placeholder('Sem vínculo')
                     ->formatStateUsing(fn (string $state) => match ($state) {
                         'App\Models\Construcao'      => 'Construção',
                         'App\Models\UnidadeAutonoma' => 'Unidade Autônoma',
@@ -160,6 +163,13 @@ class AcabamentoResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\TernaryFilter::make('acabavel_id')
+                    ->label('Vínculo')
+                    ->nullable()
+                    ->placeholder('Todos')
+                    ->trueLabel('Com vínculo')
+                    ->falseLabel('Sem vínculo'),
+
                 Tables\Filters\SelectFilter::make('acabavel_type')
                     ->label('Tipo')
                     ->options([

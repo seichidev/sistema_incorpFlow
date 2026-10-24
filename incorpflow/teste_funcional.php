@@ -117,6 +117,27 @@ try {
         verifica('acabamento de unidade (morphMany)', $aU->acabavel_type === UnidadeAutonoma::class);
         verifica('relação inversa (morphTo)', $aC->acabavel->is($c) && $aU->acabavel->is($u));
 
+        // Equipamentos e acabamentos podem nascer antes da construção ou da unidade.
+        $eSolto = Equipamento::create(['nome' => 'Equipamento Solto de Teste']);
+        verifica('equipamento sem construção', $eSolto->exists && $eSolto->construcao === null);
+        verifica('aparece na tela de equipamentos',
+            App\Filament\Resources\EquipamentoResource::getEloquentQuery()->whereKey($eSolto->id)->exists());
+
+        $aSolto = Acabamento::create(['escopo' => 'Comum', 'dependencia' => 'Hall Solto de Teste']);
+        verifica('acabamento sem vínculo', $aSolto->exists && $aSolto->acabavel === null);
+        verifica('aparece na tela de acabamentos',
+            App\Filament\Resources\AcabamentoResource::getEloquentQuery()->whereKey($aSolto->id)->exists());
+
+        $cDepois = Construcao::create([
+            'nome' => 'Construção Cadastrada Depois', 'endereco' => 'Rua de Teste, 2',
+            'cidade' => 'Londrina', 'estado' => 'PR', 'tipo' => 'Residencial',
+            'status' => 'Planejamento', 'responsavel' => 'Eng. Teste',
+        ]);
+        $eSolto->update(['construcao_id' => $cDepois->id]);
+        $aSolto->acabavel()->associate($cDepois)->save();
+        verifica('vincular depois',
+            $cDepois->equipamentos()->count() === 1 && $cDepois->acabamentos()->count() === 1);
+
         // ══════════════ 5. CASCATA ══════════════
         secao('5. Inativação em cascata');
 
@@ -203,6 +224,17 @@ try {
             $recusou(fn () => DB::table('acabamentos')->insert([
                 'acabavel_type' => Construcao::class, 'acabavel_id' => $c->id,
                 'escopo' => 'Inexistente', 'dependencia' => 'x',
+            ])));
+
+        verifica('acabamento com vínculo pela metade é recusado',
+            $recusou(fn () => DB::table('acabamentos')->insert([
+                'acabavel_type' => Construcao::class, 'acabavel_id' => null,
+                'escopo' => 'Comum', 'dependencia' => 'x',
+            ])));
+
+        verifica('equipamento com construção inexistente é recusado',
+            $recusou(fn () => DB::table('equipamentos')->insert([
+                'construcao_id' => 999999, 'nome' => 'x',
             ])));
 
         verifica('pavimento sem construção é recusado',
