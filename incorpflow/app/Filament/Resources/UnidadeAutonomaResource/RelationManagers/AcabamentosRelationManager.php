@@ -105,7 +105,6 @@ class AcabamentosRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                AcabamentoResource::acaoDuplicar(),
                 Tables\Actions\DeleteAction::make()
                     ->label('Inativar')
                     ->icon('heroicon-m-archive-box-arrow-down')

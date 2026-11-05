@@ -312,8 +312,8 @@ try {
         verifica('consultável sem o escopo',
             Construcao::withoutGlobalScope('ocultar_excluidos')->withTrashed()->find($c->id)?->foiExcluidoDefinitivamente() === true);
 
-        // ══════════════ 12. ACABAMENTOS: DEPENDÊNCIA, DUPLICAR, NORMALIZAÇÃO ══════════════
-        secao('12. Acabamentos: dependência, duplicar, normalização');
+        // ══════════════ 12. ACABAMENTOS: DEPENDÊNCIA E NORMALIZAÇÃO ══════════════
+        secao('12. Acabamentos: dependência e normalização');
 
         $cA = Construcao::create([
             'nome' => 'Construção dos Acabamentos', 'endereco' => 'Rua de Teste, 3',
@@ -338,17 +338,6 @@ try {
         verifica('sugestões trazem a lista padrão', in_array('Área de serviço', $sugestoes, true));
         verifica('sugestões trazem as já usadas, separadas',
             in_array('Sala técnica', $sugestoes, true) && ! in_array('Hall de entrada, Sala técnica', $sugestoes, true));
-
-        // Duplicar pelo mesmo caminho da ação da tela: replicate, fill, save.
-        $a->delete(); // duplicar um registro inativo
-        $copia = $a->replicate(App\Filament\Resources\AcabamentoResource::acaoDuplicar()->getExcludedAttributes());
-        $copia->fill(['dependencia' => 'quarto'])->save();
-        verifica('cópia leva piso, parede e teto',
-            $copia->piso_revestimento === $a->piso_revestimento && $copia->parede_revestimento === $a->parede_revestimento);
-        verifica('cópia mantém o vínculo', $copia->acabavel->is($cA));
-        verifica('cópia com a dependência nova', $copia->fresh()->dependencia === 'Quarto');
-        verifica('cópia de um inativo nasce ativa', Acabamento::find($copia->id) !== null);
-        verifica('original não muda', Acabamento::withTrashed()->find($a->id)->dependencia === 'Hall de entrada, Sala técnica');
 
         throw new RuntimeException('__desfazer__');
     });

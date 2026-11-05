@@ -77,8 +77,8 @@ class Acabamento extends Model
         // Padroniza a grafia ao gravar, para que "porcelanato  polido" e
         // "Porcelanato polido" contem como o mesmo valor num relatório. Fica no
         // model, e não na tela, porque acabamentos são gravados por vários
-        // caminhos: a tela de acabamentos, os formulários dentro da construção
-        // e da unidade, e a ação Duplicar.
+        // caminhos: a tela de acabamentos e os formulários dentro da construção
+        // e da unidade.
         static::saving(function (Acabamento $acabamento): void {
             foreach (self::CAMPOS_DESCRITIVOS as $campo) {
                 $acabamento->{$campo} = self::normalizarTexto($acabamento->{$campo});

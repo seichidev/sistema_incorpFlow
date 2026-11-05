@@ -97,7 +97,7 @@ class AcabamentosRelationManager extends RelationManager
                     ->default('-'),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()->label('Novo Acabamento'),
+                Tables\Actions\CreateAction::make()->label('Criar Acabamento'),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
@@ -114,7 +114,6 @@ class AcabamentosRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                AcabamentoResource::acaoDuplicar(),
                 Tables\Actions\DeleteAction::make()
                     ->label('Inativar')
                     ->icon('heroicon-m-archive-box-arrow-down')

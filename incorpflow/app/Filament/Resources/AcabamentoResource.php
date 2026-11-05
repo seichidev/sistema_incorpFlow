@@ -98,7 +98,7 @@ class AcabamentoResource extends Resource
                 Forms\Components\Textarea::make('peitoris')
                     ->label('Peitoris')
                     ->rows(2)
-                    ->columnSpanFull(),
+                    ->autosize(),
             ]);
     }
 
@@ -186,7 +186,6 @@ class AcabamentoResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                static::acaoDuplicar(),
                 Tables\Actions\DeleteAction::make()
                     ->label('Inativar')
                     ->icon('heroicon-m-archive-box-arrow-down')
@@ -242,25 +241,6 @@ class AcabamentoResource extends Resource
             ->suggestions(fn (): array => Acabamento::sugestoesDeDependencia())
             ->placeholder('Adicionar dependência')
             ->helperText('Tecle Enter ou vírgula após cada uma. Dependências com o mesmo acabamento podem ficar na mesma linha.')
-            ->required()
-            ->columnSpanFull();
-    }
-
-    /**
-     * Copia o acabamento para outra dependência do mesmo vínculo: piso, parede,
-     * teto e peitoris vêm do original, e só a dependência é informada.
-     */
-    public static function acaoDuplicar(): Tables\Actions\ReplicateAction
-    {
-        return Tables\Actions\ReplicateAction::make()
-            ->label('Duplicar')
-            ->modalHeading('Duplicar acabamento')
-            ->modalDescription('A cópia leva piso, parede, teto e peitoris. Informe a dependência dela.')
-            ->modalSubmitActionLabel('Duplicar')
-            // deleted_at e excluido_em fora da cópia: duplicar um inativo gera um registro ativo.
-            ->excludeAttributes(['dependencia', 'deleted_at', 'excluido_em'])
-            ->mutateRecordDataUsing(fn (array $data): array => [...$data, 'dependencia' => null])
-            ->form([static::campoDependencia()])
-            ->successNotificationTitle('Acabamento duplicado');
+            ->required();
     }
 }
