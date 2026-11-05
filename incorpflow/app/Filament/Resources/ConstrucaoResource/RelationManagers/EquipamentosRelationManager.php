@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\ConstrucaoResource\RelationManagers;
 
-use Filament\Forms;
+use App\Filament\Resources\EquipamentoResource;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -18,25 +18,7 @@ class EquipamentosRelationManager extends RelationManager
     public function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\TextInput::make('nome')
-                    ->label('Equipamento')
-                    ->required()
-                    ->maxLength(255),
-
-                Forms\Components\Textarea::make('tipo_ou_marca')
-                    ->label('Tipo / Marca')
-                    ->rows(3),
-
-                Forms\Components\TextInput::make('acabamento')
-                    ->label('Acabamento')
-                    ->maxLength(255),
-
-                Forms\Components\Textarea::make('detalhes_gerais')
-                    ->label('Detalhes Gerais')
-                    ->rows(3)
-                    ->columnSpanFull(),
-            ]);
+            ->schema(EquipamentoResource::camposDoEquipamento());
     }
 
     public function table(Table $table): Table
@@ -59,7 +41,7 @@ class EquipamentosRelationManager extends RelationManager
                     ->default('-'),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()->label('Novo Equipamento'),
+                Tables\Actions\CreateAction::make()->label('Criar Equipamento'),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
