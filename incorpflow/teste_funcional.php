@@ -148,7 +148,7 @@ try {
         verifica('equipamento acompanha', Equipamento::find($e->id) === null);
         verifica('acabamentos acompanham', Acabamento::whereIn('id', [$aC->id, $aU->id])->count() === 0);
         verifica('registros preservados no banco', Construcao::withTrashed()->find($c->id) !== null);
-        verifica('deleted_at preenchido', Construcao::withTrashed()->find($c->id)->deleted_at !== null);
+        verifica('inactive_at preenchido', Construcao::withTrashed()->find($c->id)->inactive_at !== null);
 
         // ══════════════ 6. REATIVAÇÃO ══════════════
         secao('6. Reativação em cascata');
@@ -282,14 +282,14 @@ try {
         // ══════════════ 11. EXCLUSÃO DEFINITIVA ══════════════
         secao('11. Exclusão definitiva');
 
-        // A exclusão definitiva não apaga a linha: só preenche excluido_em.
+        // A exclusão definitiva não apaga a linha: só preenche deleted_at.
         $c->pavimentos()->first()->delete(); // um dependente já inativo antes da exclusão
         $c->delete();
         verifica('ação retorna sucesso', Construcao::withTrashed()->find($c->id)->excluirDefinitivamente() === true);
 
         $noBanco = fn (string $tabela, int $id) => DB::table($tabela)->where('id', $id)->first();
-        $excluido = fn (string $tabela, int $id) => $noBanco($tabela, $id)?->excluido_em !== null
-            && $noBanco($tabela, $id)?->deleted_at !== null;
+        $excluido = fn (string $tabela, int $id) => $noBanco($tabela, $id)?->deleted_at !== null
+            && $noBanco($tabela, $id)?->inactive_at !== null;
 
         verifica('construção continua no banco', $noBanco('construcoes', $c->id) !== null);
         verifica('construção marcada como excluída', $excluido('construcoes', $c->id));
@@ -298,7 +298,7 @@ try {
         verifica('acabamento da unidade excluído junto', $excluido('acabamentos', $aU->id));
         verifica('acabamento da construção excluído junto', $excluido('acabamentos', $aC->id));
         verifica('equipamentos excluídos junto',
-            DB::table('equipamentos')->where('construcao_id', $c->id)->whereNull('excluido_em')->count() === 0);
+            DB::table('equipamentos')->where('construcao_id', $c->id)->whereNull('deleted_at')->count() === 0);
 
         verifica('some mesmo com withTrashed', Construcao::withTrashed()->find($c->id) === null);
         verifica('some do filtro "inativos" da listagem',

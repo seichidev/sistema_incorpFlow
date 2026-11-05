@@ -150,7 +150,8 @@ class ConstrucaoResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('deleted_at')
+                Tables\Columns\TextColumn::make('inactive_at')
+                    ->label('Inativado em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -201,8 +202,8 @@ class ConstrucaoResource extends Resource
                 'total_unidades' => UnidadeAutonoma::query()
                     ->join('pavimentos', 'pavimentos.id', '=', 'unidades_autonomas.pavimento_id')
                     ->whereColumn('pavimentos.construcao_id', 'construcoes.id')
-                    ->whereNull('pavimentos.deleted_at')
-                    ->whereNull('unidades_autonomas.deleted_at') // CORREÇÃO: Ignorar unidades que sofreram soft delete
+                    ->whereNull('pavimentos.inactive_at')
+                    ->whereNull('unidades_autonomas.inactive_at') // CORREÇÃO: Ignorar unidades que sofreram soft delete
                     ->selectRaw('coalesce(sum(unidades_autonomas.quantidade), 0)'),
             ]);
     }

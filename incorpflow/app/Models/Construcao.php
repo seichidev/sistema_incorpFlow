@@ -13,6 +13,9 @@ class Construcao extends Model
     use ExcluiDefinitivamente;
     use SoftDeletes;
 
+    /** Coluna do SoftDeletes (inativar). deleted_at é a exclusão definitiva. */
+    const DELETED_AT = 'inactive_at';
+
     protected $table = 'construcoes';
 
     protected $fillable = [

@@ -50,8 +50,8 @@ class AcabamentoResource extends Resource
                             'App\Models\UnidadeAutonoma' => UnidadeAutonoma::query()
                                 ->join('pavimentos', 'pavimentos.id', '=', 'unidades_autonomas.pavimento_id')
                                 ->join('construcoes', 'construcoes.id', '=', 'pavimentos.construcao_id')
-                                ->whereNull('pavimentos.deleted_at')
-                                ->whereNull('construcoes.deleted_at')
+                                ->whereNull('pavimentos.inactive_at')
+                                ->whereNull('construcoes.inactive_at')
                                 ->selectRaw("unidades_autonomas.id, construcoes.nome || ' — ' || unidades_autonomas.numero || ' (' || unidades_autonomas.tipo || ')' as label")
                                 ->pluck('label', 'unidades_autonomas.id'),
                             default => [],

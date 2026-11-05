@@ -12,6 +12,9 @@ class Equipamento extends Model
     use ExcluiDefinitivamente;
     use SoftDeletes;
 
+    /** Coluna do SoftDeletes (inativar). deleted_at é a exclusão definitiva. */
+    const DELETED_AT = 'inactive_at';
+
     /**
      * Sugestões para o nome do equipamento. Não é lista fechada: os nomes já
      * cadastrados também são sugeridos, e qualquer texto é aceito.
