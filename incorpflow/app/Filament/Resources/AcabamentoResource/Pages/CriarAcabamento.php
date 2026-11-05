@@ -8,4 +8,6 @@ use Filament\Resources\Pages\CreateRecord;
 class CriarAcabamento extends CreateRecord
 {
     protected static string $resource = AcabamentoResource::class;
+
+    protected static bool $canCreateAnother = false;
 }
