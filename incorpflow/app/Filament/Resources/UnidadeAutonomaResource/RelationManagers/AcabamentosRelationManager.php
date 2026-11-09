@@ -23,8 +23,8 @@ class AcabamentosRelationManager extends RelationManager
                 Forms\Components\Select::make('escopo')
                     ->label('Escopo')
                     ->options([
-                        'Privativo' => 'Privativo',
                         'Comum'     => 'Comum',
+                        'Privativo' => 'Privativo',
                     ])
                     ->default('Privativo')
                     ->required(),

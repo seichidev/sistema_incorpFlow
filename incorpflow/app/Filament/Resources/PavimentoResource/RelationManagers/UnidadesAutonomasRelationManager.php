@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PavimentoResource\RelationManagers;
 use App\Models\UnidadeAutonoma;
 use App\Rules\NumerosSemDuplicidade;
 use App\Rules\QuantidadeCorrespondeAosNumeros;
+use App\Filament\Support\CampoNumerico;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -41,10 +42,10 @@ class UnidadesAutonomasRelationManager extends RelationManager
                     ->label('Tipo')
                     ->options([
                         'Apartamento'     => 'Apartamento',
-                        'Vaga de Garagem' => 'Vaga de Garagem',
-                        'Sala Comercial'  => 'Sala Comercial',
-                        'Loja'            => 'Loja',
                         'Box'             => 'Box',
+                        'Loja'            => 'Loja',
+                        'Sala Comercial'  => 'Sala Comercial',
+                        'Vaga de Garagem' => 'Vaga de Garagem',
                     ])
                     ->searchable()
                     ->required(),
@@ -65,20 +66,14 @@ class UnidadesAutonomasRelationManager extends RelationManager
 
                 Forms\Components\Fieldset::make('Áreas (Quadro II)')
                     ->schema([
-                        Forms\Components\TextInput::make('area_privativa')
-                            ->label('Área privativa (m²)')
-                            ->numeric()
-                            ->step(0.0001),
+                        CampoNumerico::decimal('area_privativa', 12, 4)
+                            ->label('Área privativa (m²)'),
 
-                        Forms\Components\TextInput::make('area_comum')
-                            ->label('Área comum (m²)')
-                            ->numeric()
-                            ->step(0.0001),
+                        CampoNumerico::decimal('area_comum', 12, 4)
+                            ->label('Área comum (m²)'),
 
-                        Forms\Components\TextInput::make('area_equivalente')
+                        CampoNumerico::decimal('area_equivalente', 12, 4)
                             ->label('Área equivalente (m²)')
-                            ->numeric()
-                            ->step(0.0001)
                             ->helperText('Área equivalente de construção — 4 casas decimais'),
                     ])
                     ->columns(3),
@@ -88,9 +83,8 @@ class UnidadesAutonomasRelationManager extends RelationManager
                     ->helperText('Unidade dada como pagamento do terreno')
                     ->default(false),
 
-                Forms\Components\TextInput::make('quantidade')
+                CampoNumerico::inteiro('quantidade')
                     ->label('Unidades idênticas')
-                    ->integer()
                     ->default(1)
                     ->minValue(1)
                     ->required()

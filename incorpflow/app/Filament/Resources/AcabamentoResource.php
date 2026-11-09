@@ -48,13 +48,14 @@ class AcabamentoResource extends Resource
                     ->label('Registro')
                     ->options(function (Get $get) {
                         return match ($get('acabavel_type')) {
-                            'App\Models\Construcao'      => Construcao::pluck('nome', 'id'),
+                            'App\Models\Construcao'      => Construcao::orderBy('nome')->pluck('nome', 'id'),
                             'App\Models\UnidadeAutonoma' => UnidadeAutonoma::query()
                                 ->join('pavimentos', 'pavimentos.id', '=', 'unidades_autonomas.pavimento_id')
                                 ->join('construcoes', 'construcoes.id', '=', 'pavimentos.construcao_id')
                                 ->whereNull('pavimentos.inactive_at')
                                 ->whereNull('construcoes.inactive_at')
                                 ->selectRaw("unidades_autonomas.id, construcoes.nome || ' — ' || unidades_autonomas.numero || ' (' || unidades_autonomas.tipo || ')' as label")
+                                ->orderBy('label')
                                 ->pluck('label', 'unidades_autonomas.id'),
                             default => [],
                         };
@@ -65,8 +66,8 @@ class AcabamentoResource extends Resource
                 Forms\Components\Select::make('escopo')
                     ->label('Escopo')
                     ->options([
-                        'Privativo' => 'Privativo (Q7)',
                         'Comum'     => 'Comum (Q8)',
+                        'Privativo' => 'Privativo (Q7)',
                     ])
                     ->required(),
 
@@ -176,8 +177,8 @@ class AcabamentoResource extends Resource
 
                 Tables\Filters\SelectFilter::make('escopo')
                     ->options([
-                        'Privativo' => 'Privativo',
                         'Comum'     => 'Comum',
+                        'Privativo' => 'Privativo',
                     ]),
 
                 Tables\Filters\TrashedFilter::make()

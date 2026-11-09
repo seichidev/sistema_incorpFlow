@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\ExcluiDefinitivamente;
+use Collator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -42,7 +43,8 @@ class Equipamento extends Model
     /** @return list<string> */
     public static function sugestoesDeNome(): array
     {
-        return collect(self::NOMES)->merge(static::valoresUsados('nome'))->unique()->values()->all();
+        return collect(self::NOMES)->merge(static::valoresUsados('nome'))->unique()
+            ->sort((new Collator('pt_BR'))->compare(...))->values()->all();
     }
 
     /**

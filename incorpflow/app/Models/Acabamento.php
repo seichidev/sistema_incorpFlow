@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\ExcluiDefinitivamente;
+use Collator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -73,7 +74,8 @@ class Acabamento extends Model
             ->map(fn (string $item): string => trim($item))
             ->filter();
 
-        return collect(self::DEPENDENCIAS)->merge($usadas)->unique()->values()->all();
+        return collect(self::DEPENDENCIAS)->merge($usadas)->unique()
+            ->sort((new Collator('pt_BR'))->compare(...))->values()->all();
     }
 
     /**

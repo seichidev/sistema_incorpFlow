@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ConstrucaoResource\Pages;
 use App\Models\Construcao;
 use App\Models\UnidadeAutonoma;
+use Collator;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -73,15 +74,18 @@ class ConstrucaoResource extends Resource
                         // renderização do formulário — inclusive ao abrir uma edição, em que
                         // o estado já vem preenchido.
                         try {
-                            return Cache::remember("ibge-municipios-{$estado}", now()->addDay(), function () use ($estado): array {
+                            $municipios = Cache::remember("ibge-municipios-{$estado}", now()->addDay(), function () use ($estado): array {
                                 return Http::timeout(5)
                                     ->get("https://servicodados.ibge.gov.br/api/v1/localidades/estados/{$estado}/municipios")
                                     ->throw()
                                     ->collect()
                                     ->pluck('nome', 'nome')
-                                    ->sort()
                                     ->all();
                             });
+
+                            // Collator: ordem do português, com "Águas" junto do "A".
+                            // sort() comum põe as letras acentuadas depois do "Z".
+                            return collect($municipios)->sort((new Collator('pt_BR'))->compare(...))->all();
                         } catch (\Throwable) {
                             return [];
                         }
@@ -93,19 +97,19 @@ class ConstrucaoResource extends Resource
                 Forms\Components\Select::make('tipo')
                     ->label('Tipo')
                     ->options([
-                        'Residencial' => 'Residencial',
                         'Comercial'   => 'Comercial',
-                        'Misto'       => 'Misto',
                         'Industrial'  => 'Industrial',
+                        'Misto'       => 'Misto',
+                        'Residencial' => 'Residencial',
                     ])
                     ->required(),
 
                 Forms\Components\Select::make('status')
                     ->label('Status')
                     ->options([
-                        'Planejamento'  => 'Planejamento',
-                        'Em construção' => 'Em construção',
                         'Concluída'     => 'Concluída',
+                        'Em construção' => 'Em construção',
+                        'Planejamento'  => 'Planejamento',
                         'Suspensa'      => 'Suspensa',
                     ])
                     ->default('Planejamento')

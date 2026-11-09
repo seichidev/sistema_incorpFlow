@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PavimentoResource\Pages;
 use App\Models\Construcao;
 use App\Models\Pavimento;
+use App\Filament\Support\CampoNumerico;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -43,13 +44,13 @@ class PavimentoResource extends Resource
                 Forms\Components\Select::make('tipo')
                     ->label('Tipo')
                     ->options([
-                        'Inferior'   => 'Inferior',
-                        'Terreo'     => 'Térreo',
-                        'Superior'   => 'Superior',
-                        'Lazer'      => 'Lazer',
-                        'Tipo'       => 'Tipo',
                         'Barrilete'  => 'Barrilete',
                         'CaixaDAgua' => "Caixa d'Água",
+                        'Inferior'   => 'Inferior',
+                        'Lazer'      => 'Lazer',
+                        'Superior'   => 'Superior',
+                        'Terreo'     => 'Térreo',
+                        'Tipo'       => 'Tipo',
                     ])
                     ->required(),
 
@@ -58,21 +59,16 @@ class PavimentoResource extends Resource
                     ->maxLength(100)
                     ->placeholder('Ex: Torre A, Bloco 1'),
 
-                Forms\Components\TextInput::make('nivel')
+                CampoNumerico::decimal('nivel', 8, 2)
                     ->label('Nível (m)')
-                    ->numeric()
-                    ->step(0.01)
                     ->placeholder('Ex: 571.85'),
 
-                Forms\Components\TextInput::make('area_construida')
+                CampoNumerico::decimal('area_construida', 12, 4)
                     ->label('Área construída (m²)')
-                    ->numeric()
-                    ->step(0.0001)
                     ->helperText('Área de construção do pavimento — Quadro I (4 casas decimais)'),
 
-                Forms\Components\TextInput::make('quantidade')
+                CampoNumerico::inteiro('quantidade')
                     ->label('Quantidade de pavimentos idênticos')
-                    ->integer()
                     ->default(1)
                     ->minValue(1)
                     ->required(),
@@ -129,13 +125,13 @@ class PavimentoResource extends Resource
 
                 Tables\Filters\SelectFilter::make('tipo')
                     ->options([
-                        'Inferior'   => 'Inferior',
-                        'Terreo'     => 'Térreo',
-                        'Superior'   => 'Superior',
-                        'Lazer'      => 'Lazer',
-                        'Tipo'       => 'Tipo',
                         'Barrilete'  => 'Barrilete',
                         'CaixaDAgua' => "Caixa d'Água",
+                        'Inferior'   => 'Inferior',
+                        'Lazer'      => 'Lazer',
+                        'Superior'   => 'Superior',
+                        'Terreo'     => 'Térreo',
+                        'Tipo'       => 'Tipo',
                     ]),
 
                 Tables\Filters\TrashedFilter::make()

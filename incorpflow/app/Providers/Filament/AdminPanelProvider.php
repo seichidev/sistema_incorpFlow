@@ -42,6 +42,10 @@ class AdminPanelProvider extends PanelProvider
                     }
                 </style>',
             )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.scripts')->render(),
+            )
             ->sidebarCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Blue,
