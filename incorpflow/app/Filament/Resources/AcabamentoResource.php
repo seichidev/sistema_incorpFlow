@@ -6,9 +6,11 @@ use App\Filament\Resources\AcabamentoResource\Pages;
 use App\Models\Acabamento;
 use App\Models\Construcao;
 use App\Models\UnidadeAutonoma;
+use Closure;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -241,6 +243,18 @@ class AcabamentoResource extends Resource
             ->suggestions(fn (): array => Acabamento::sugestoesDeDependencia())
             ->placeholder('Adicionar dependência')
             ->helperText('Tecle Enter ou vírgula após cada uma. Dependências com o mesmo acabamento podem ficar na mesma linha.')
-            ->required();
+            ->required()
+            ->rule(fn (Get $get, ?Acabamento $record, $livewire): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record, $livewire): void {
+                // Dentro da construção ou da unidade, o vínculo é o registro aberto.
+                [$tipo, $id] = $livewire instanceof RelationManager
+                    ? [$livewire->getOwnerRecord()->getMorphClass(), $livewire->getOwnerRecord()->getKey()]
+                    : [$get('acabavel_type'), $get('acabavel_id')];
+
+                $repetidas = Acabamento::dependenciasRepetidas($value, $tipo, $id, $get('escopo'), $record?->getKey());
+
+                if ($repetidas !== []) {
+                    $fail(Acabamento::mensagemDeRepetidas($repetidas));
+                }
+            });
     }
 }

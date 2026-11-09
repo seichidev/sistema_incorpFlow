@@ -6,6 +6,7 @@ use App\Models\Concerns\ExcluiDefinitivamente;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\ValidationException;
 
 class Acabamento extends Model
 {
@@ -75,6 +76,54 @@ class Acabamento extends Model
         return collect(self::DEPENDENCIAS)->merge($usadas)->unique()->values()->all();
     }
 
+    /**
+     * Dependências que já têm acabamento no mesmo vínculo e escopo. Cada
+     * dependência tem um só acabamento por quadro: "Cozinha" não pode estar em
+     * duas linhas, nem sozinha numa e agrupada ("Sala de estar, Cozinha") noutra.
+     * Sem vínculo, a comparação é com os outros acabamentos sem vínculo.
+     * Inativos contam, porque podem ser reativados; excluídos não.
+     *
+     * @param  list<string>|string|null  $dependencias
+     * @return list<string> as repetidas, com a grafia já gravada
+     */
+    public static function dependenciasRepetidas(
+        array|string|null $dependencias,
+        ?string $acabavelType,
+        mixed $acabavelId,
+        ?string $escopo,
+        mixed $ignorarId = null,
+    ): array {
+        $novas = array_map(mb_strtolower(...), self::itensDeDependencia($dependencias));
+
+        if ($novas === [] || blank($escopo)) {
+            return [];
+        }
+
+        return static::withTrashed()
+            ->where('escopo', $escopo)
+            ->when(
+                filled($acabavelId),
+                fn ($query) => $query->where('acabavel_type', $acabavelType)->where('acabavel_id', $acabavelId),
+                fn ($query) => $query->whereNull('acabavel_id'),
+            )
+            ->when(filled($ignorarId), fn ($query) => $query->whereKeyNot($ignorarId))
+            ->pluck('dependencia')
+            ->flatMap(self::itensDeDependencia(...))
+            ->filter(fn (string $item): bool => in_array(mb_strtolower($item), $novas, true))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /** @param  list<string>  $repetidas */
+    public static function mensagemDeRepetidas(array $repetidas): string
+    {
+        $nomes = implode(', ', $repetidas);
+
+        return (count($repetidas) === 1 ? "{$nomes} já tem acabamento" : "{$nomes} já têm acabamento")
+            . ' cadastrado neste vínculo e escopo (confira também os inativos).';
+    }
+
     protected static function booted(): void
     {
         // Padroniza a grafia ao gravar, para que "porcelanato  polido" e
@@ -88,6 +137,20 @@ class Acabamento extends Model
             }
 
             $acabamento->dependencia = self::normalizarDependencias($acabamento->dependencia);
+
+            // O formulário já valida isto (AcabamentoResource::campoDependencia);
+            // aqui vale para qualquer outro caminho de gravação.
+            $repetidas = self::dependenciasRepetidas(
+                $acabamento->dependencia,
+                $acabamento->acabavel_type,
+                $acabamento->acabavel_id,
+                $acabamento->escopo,
+                $acabamento->getKey(),
+            );
+
+            if ($repetidas !== []) {
+                throw ValidationException::withMessages(['dependencia' => self::mensagemDeRepetidas($repetidas)]);
+            }
         });
     }
 
@@ -118,15 +181,35 @@ class Acabamento extends Model
     /** Cada dependência normalizada, separadas por ", " (o separador do campo de etiquetas). */
     private static function normalizarDependencias(?string $valor): ?string
     {
-        if ($valor === null) {
-            return null;
-        }
-
-        $itens = array_filter(
-            array_map(self::normalizarTexto(...), explode(',', str_replace(["\r\n", "\r", "\n"], ',', $valor))),
-            fn (?string $item): bool => $item !== null,
-        );
+        $itens = self::itensDeDependencia($valor);
 
         return $itens === [] ? null : implode(', ', $itens);
+    }
+
+    /**
+     * Separa as dependências (vírgula ou quebra de linha), normaliza cada uma
+     * e tira as repetidas dentro do mesmo registro, sem diferenciar maiúsculas.
+     *
+     * @param  list<string>|string|null  $valor  texto gravado ou etiquetas do formulário
+     * @return list<string>
+     */
+    private static function itensDeDependencia(array|string|null $valor): array
+    {
+        if ($valor === null) {
+            return [];
+        }
+
+        $texto = is_array($valor) ? implode(',', $valor) : $valor;
+        $itens = [];
+
+        foreach (explode(',', str_replace(["\r\n", "\r", "\n"], ',', $texto)) as $item) {
+            $item = self::normalizarTexto($item);
+
+            if ($item !== null) {
+                $itens[mb_strtolower($item)] ??= $item;
+            }
+        }
+
+        return array_values($itens);
     }
 }

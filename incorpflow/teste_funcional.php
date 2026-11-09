@@ -339,6 +339,48 @@ try {
         verifica('sugestões trazem as já usadas, separadas',
             in_array('Sala técnica', $sugestoes, true) && ! in_array('Hall de entrada, Sala técnica', $sugestoes, true));
 
+        // ══════════════ 13. ACABAMENTOS: DEPENDÊNCIA REPETIDA ══════════════
+        secao('13. Acabamentos: dependência repetida');
+
+        $barrado = function (callable $fn): bool {
+            try {
+                DB::transaction(fn () => $fn());
+                return false;
+            } catch (Illuminate\Validation\ValidationException $e) {
+                return true;
+            }
+        };
+        $comum = fn (string $dependencia) => ['escopo' => 'Comum', 'dependencia' => $dependencia];
+
+        verifica('mesma dependência no mesmo vínculo e escopo é recusada',
+            $barrado(fn () => $cA->acabamentos()->create($comum('Hall de entrada'))));
+        verifica('recusada também dentro de um grupo e sem diferenciar maiúsculas',
+            $barrado(fn () => $cA->acabamentos()->create($comum('Escadaria, sala TÉCNICA'))));
+        verifica('outro escopo aceita',
+            ! $barrado(fn () => $cA->acabamentos()->create(['escopo' => 'Privativo', 'dependencia' => 'Hall de entrada'])));
+
+        $cB = $cA->replicate()->fill(['nome' => 'Outra Construção dos Acabamentos']);
+        $cB->save();
+        verifica('outra construção aceita', ! $barrado(fn () => $cB->acabamentos()->create($comum('Hall de entrada'))));
+        verifica('editar o próprio registro não acusa repetição',
+            ! $barrado(fn () => $a->update(['piso_acabamento' => 'Polido'])));
+        verifica('repetida no mesmo registro fica uma vez só',
+            $cA->acabamentos()->create($comum('Garagem, garagem'))->dependencia === 'Garagem');
+
+        $a->delete();
+        verifica('inativo conta como existente', $barrado(fn () => $cA->acabamentos()->create($comum('Hall de entrada'))));
+        $a->restore();
+        verifica('reativar o próprio registro funciona', Acabamento::find($a->id) !== null);
+
+        $cA->acabamentos()->where('dependencia', 'Garagem')->first()->excluirDefinitivamente();
+        verifica('excluído não conta', ! $barrado(fn () => $cA->acabamentos()->create($comum('Garagem'))));
+
+        $solto = Acabamento::create($comum('Hall de entrada'));
+        verifica('sem vínculo compara com os outros sem vínculo',
+            $barrado(fn () => Acabamento::create($comum('Hall de entrada'))));
+        verifica('vincular depois também é verificado',
+            $barrado(fn () => $solto->update(['acabavel_type' => Construcao::class, 'acabavel_id' => $cA->id])));
+
         throw new RuntimeException('__desfazer__');
     });
 } catch (RuntimeException $e) {
